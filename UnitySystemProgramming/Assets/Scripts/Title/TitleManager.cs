@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TitleManager : MonoBehaviour
 {
@@ -11,6 +12,10 @@ public class TitleManager : MonoBehaviour
 
     // 타이틀
     public GameObject Title;
+    public Slider LoadingSlider;
+    public TextMeshProUGUI LoadingProgresssTxt;
+
+    private AsyncOperation m_AsyncOperation;
 
     private void Awake()
     {
@@ -32,5 +37,42 @@ public class TitleManager : MonoBehaviour
 
         LogoAnim.gameObject.SetActive(false);
         Title.SetActive(true);
+
+        m_AsyncOperation = SceneLoader.Instance.LoadSceneAsync(SceneType.Lobby);
+        if(m_AsyncOperation == null)
+        {
+            Logger.Log("Lobby async loading error.");
+            yield break;
+        }
+
+        m_AsyncOperation.allowSceneActivation = false;
+
+        LoadingSlider.value = 0.5f;
+        LoadingProgresssTxt.text = $"{((int)LoadingSlider.value * 100)}%";
+        yield return new WaitForSeconds(0.5f);
+
+        while(m_AsyncOperation.isDone) // 로딩 진행중
+        {
+            LoadingSlider.value = m_AsyncOperation.progress < 0.5f ? 0.5f : m_AsyncOperation.progress;
+            LoadingProgresssTxt.text = $"{((int)LoadingSlider.value * 100)}%";
+
+            // 씬 로딩이 완료 되었다면 로비로 전환하고 코루틴 종료
+            if (m_AsyncOperation.progress >= 0.9f) // 유니티에서 이렇게 만듦. progress가 0.9에서 멈춤
+            {
+                m_AsyncOperation.allowSceneActivation = true;
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        // 씬 로딩이 완료 되었다면 로비로 전환하고 코루틴 종료
+        if (m_AsyncOperation.progress >= 0.9f) // 유니티에서 이렇게 만듦. progress가 0.9에서 멈춤
+        {
+            LoadingSlider.value = m_AsyncOperation.progress < 0.5f ? 0.5f : m_AsyncOperation.progress;
+            LoadingProgresssTxt.text = $"{((int)LoadingSlider.value * 100)}%";
+            m_AsyncOperation.allowSceneActivation = true;
+            yield break;
+        }
     }
 }
