@@ -84,6 +84,18 @@ public class AudioManager : SingletonBehavior<AudioManager>
         }
     }
 
+    public void OnLoadUserData()
+    {
+        var userSettingsData = UserDataManager.Instance.GetUserData<UserSettingData>();
+        if(userSettingsData != null)
+        {
+            if(userSettingsData.Sound == false)
+            {
+                Mute();
+            }
+        }
+    }
+    
     public void PlayBGM(BGM bgm)
     {
         if(m_CurrentBGMSource)
