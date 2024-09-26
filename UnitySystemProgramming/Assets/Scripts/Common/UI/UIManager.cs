@@ -12,6 +12,19 @@ public class UIManager : SingletonBehavior<UIManager>
     private Dictionary<System.Type, GameObject> m_OpenUIPool = new Dictionary<System.Type, GameObject>();
     private Dictionary<System.Type, GameObject> m_ClosedUIPool = new Dictionary<System.Type, GameObject>();
 
+    private GoodsUI m_GoodsUI;
+
+    protected override void Init()
+    {
+        base.Init();
+
+        m_GoodsUI = FindObjectOfType<GoodsUI>();
+        if(m_GoodsUI == null)
+        {
+            Logger.LogError("No goods UI exist.");
+        }
+    }
+
     private BaseUI GetUI<T>(out bool isAlreadyOpen)
     {
         System.Type uiType = typeof(T);
@@ -59,7 +72,7 @@ public class UIManager : SingletonBehavior<UIManager>
             return;
         }
 
-        var siblingIndex = UICanvasTrs.childCount;
+        var siblingIndex = UICanvasTrs.childCount - 1; // 
         ui.Init(UICanvasTrs);
         ui.transform.SetSiblingIndex(siblingIndex); // 위치 순서
         ui.gameObject.SetActive(true);
@@ -115,6 +128,16 @@ public class UIManager : SingletonBehavior<UIManager>
         while(m_FrontUI)
         {
             m_FrontUI.CloseUI(true);
+        }
+    }
+
+    public void EnableGoodsUI(bool value)
+    {
+        m_GoodsUI.gameObject.SetActive(value);
+
+        if(value)
+        {
+            m_GoodsUI.SetValues();
         }
     }
 }
